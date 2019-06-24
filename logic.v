@@ -1,0 +1,294 @@
+// Name: logic.v
+// Module: 
+// Input: 
+// Output: 
+//
+// Notes: Common definitions
+// 
+//
+// Revision History:
+//
+// Version	Date		Who		email			note
+//------------------------------------------------------------------------------------------
+//  1.0     Sep 02, 2014	Kaushik Patra	kpatra@sjsu.edu		Initial creation
+//------------------------------------------------------------------------------------------
+//
+// 64-bit two's complement
+module TWOSCOMP64(Y,A);
+//output list
+output [63:0] Y;
+//input list
+input [63:0] A;
+
+// TBD
+wire [63:0] notWire;
+wire null;
+
+reg [63: 0] one = 64'b1;
+
+genvar i;
+generate
+	for(i = 0; i<64; i=i+1) begin : loop
+		not n(notWire[i], A[i]);
+	end
+	RC_ADD_SUB_64 r(Y, null, notWire, one, 1'b0);
+endgenerate
+endmodule
+
+// 32-bit two's complement
+module TWOSCOMP32(Y,A);
+//output list
+output [31:0] Y;
+//input list
+input [31:0] A;
+
+// TBD
+wire [31:0] notWire;
+wire null;
+
+reg [31: 0] one = 32'b1;
+
+genvar i;
+generate
+	for(i = 0; i<32; i=i+1) begin : loop
+		not n(notWire[i], A[i]);
+	end
+	RC_ADD_SUB_64 r(Y, null, notWire, one, 1'b0);
+endgenerate
+endmodule
+
+// 32-bit registere +ve edge, Reset on RESET=0
+module REG32(Q, D, LOAD, CLK, RESET);
+output [31:0] Q;
+
+input CLK, LOAD;
+input [31:0] D;
+input RESET;
+
+// TBD
+wire Qbar;
+
+genvar i;
+generate
+	for(i =0; i<32; i=i+1) begin : loop
+		REG1 r(Q[i], Qbar, D[i],  LOAD, CLK, 1'b1, RESET);
+	end
+endgenerate
+endmodule
+
+// 1 bit register +ve edge, 
+// Preset on nP=0, nR=1, reset on nP=1, nR=0;
+// Undefined nP=0, nR=0
+// normal operation nP=1, nR=1
+module REG1(Q, Qbar, D, L, C, nP, nR);
+input D, C, L;
+input nP, nR;
+output Q,Qbar;
+
+// TBD
+wire muxResult, ffResult;
+
+MUX1_2x1 m(muxResult, ffResult, D, L);
+
+D_FF f(ffResult, Qbar, muxResult, C, nP, nR);
+
+buf(Q, ffResult);
+
+endmodule
+
+
+//3 nand gate for the flipflop
+module NAND_3x1(r, x, y, z);
+	input x, y, z;
+	output r;
+	wire b [1:0];
+	and a(b[0], x, y);
+	and a2(b[1], b[0], z);
+	not n(r, b[1]);
+endmodule
+
+
+// 1 bit flipflop +ve edge, 
+// Preset on nP=0, nR=1, reset on nP=1, nR=0;
+// Undefined nP=0, nR=0
+// normal operation nP=1, nR=1
+module D_FF(Q, Qbar, D, C, nP, nR);
+input D, C;
+input nP, nR;
+output Q,Qbar;
+
+// TBD
+wire out[5:0];
+wire notD, notC, dOut1, dOut2;
+
+not n(notD, D);
+
+nand no(out[0], D, C);
+nand n1(out[1], C, notD);
+
+NAND_3x1 n2(dOut1, nP, out[0], dOut2);
+NAND_3x1 n3(dOut2, dOut1, out[1], nR);
+
+not n4(notC, C);
+
+nand n5(out[2], dOut1, notC);
+nand n6(out[3], notC, dOut2);
+
+NAND_3x1 n7(out[4], nP, out[2], out[5]);
+NAND_3x1 n8(out[5], out[4], out[3], nR);
+
+buf b(Q, out[4]);
+buf b1(Qbar, out[5]);
+
+endmodule
+
+// 1 bit D latch
+//nP = Q, nR = Q'
+// Preset on nP=0, nR=1, reset on nP=1, nR=0;
+// Undefined nP=0, nR=0
+// normal operation nP=1, nR=1
+module D_LATCH(Q, Qbar, D, C, nP, nR);
+input D, C;
+input nP, nR;
+output Q,Qbar;
+
+// TBD
+wire nand1,nand2, notD;
+
+not d(notD, D);
+nand n(nand1, D, C);
+nand n1(nand2, C, notD);
+
+nand n2(Q, nand1, nR);
+nand n3(Qbar, nand2, nP);
+
+endmodule
+
+// 1 bit SR latch
+// Preset on nP=0, nR=1, reset on nP=1, nR=0;
+// Undefined nP=0, nR=0
+// normal operation nP=1, nR=1
+module SR_LATCH(Q,Qbar, S, R, C, nP, nR);
+input S, R, C;
+input nP, nR;
+output Q,Qbar;
+
+// TBD
+wire nand1, nand2;
+wire notNP, notC;
+nand n1(nand1, S, C);
+nand n2(nand2, C, R);
+
+nand n3(Q, nand1, nR);
+nand n4(Qbar, nand2, nP);
+endmodule
+
+// 5x32 Line decoder
+module DECODER_5x32(D,I);
+// output
+output [31:0] D;
+// input
+input [4:0] I;
+
+// TBD
+wire [16:0] andInputs;
+
+not n(andInputs[16], I[4]);
+
+DECODER_4x16 d(andInputs[15:0], I[3:0]);
+
+genvar i;
+	for(i = 0; i<16; i=i+1) begin: loop
+		and a(D[i], andInputs[i], andInputs[16]);
+		and a1(D[i+16], andInputs[i], I[4]);
+	end
+endmodule
+
+// 4x16 Line decoder
+module DECODER_4x16(D,I);
+// output
+output [15:0] D;
+// input
+input [3:0] I;
+
+wire [8:0] andInputs;
+
+DECODER_3x8 d(andInputs[7:0], I[2:0]);
+
+not n(andInputs[8], I[3]);
+
+genvar i;
+	for(i =0; i<8; i=i+1) begin : loop
+		and a(D[i], andInputs[i], andInputs[8]);
+		and a1(D[i+8], andInputs[i], I[3]);
+	end
+// TBD
+
+
+endmodule
+
+// 3x8 Line decoder
+module DECODER_3x8(D,I);
+// output
+output [7:0] D;
+// input
+input [2:0] I;
+
+//TBD
+wire [4:0] andInputs;
+
+
+not n(andInputs[4], I[2]);
+
+DECODER_2x4 d(andInputs[3:0], I[1:0]);
+
+genvar i;
+	for(i=0; i<4; i=i+1) begin : loop
+		and a(D[i], andInputs[i], andInputs[4]);
+		and a1(D[i+4], andInputs[i], I[2]);
+	end
+
+endmodule
+
+// 2x4 Line decoder
+module DECODER_2x4(D,I);
+// output
+output [3:0] D;
+// input
+input [1:0] I;
+
+wire notI0, notI1;
+
+not n(notI0, I[0]);
+not n1(notI1,I[1]);
+
+and  a(D[0], notI0, notI1);
+and a1(D[1], notI1, I[0]);
+and a2(D[2], I[1], notI0);
+and a3(D[3], I[0], I[1]);
+
+endmodule
+
+
+module REG32_PP(Q, D, LOAD, CLK, RESET);
+parameter PATTERN = 32'h00000000;
+output [31:0] Q;
+
+input CLK, LOAD;
+input [31:0] D;
+input RESET;
+
+wire [31:0] qbar;
+
+genvar i;
+generate 
+for(i=0; i<32; i=i+1)
+begin : reg32_gen_loop
+if (PATTERN[i] == 0)
+REG1 reg_inst(.Q(Q[i]), .Qbar(qbar[i]), .D(D[i]), .L(LOAD), .C(CLK), .nP(1'b1), .nR(RESET)); 
+else
+REG1 reg_inst(.Q(Q[i]), .Qbar(qbar[i]), .D(D[i]), .L(LOAD), .C(CLK), .nP(RESET), .nR(1'b1));
+end 
+endgenerate
+
+endmodule

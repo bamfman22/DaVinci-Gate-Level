@@ -1,0 +1,32 @@
+
+`timescale 1ns/1ps
+module a_rc_add_sub_32_tb;
+	reg [31:0] A, B;
+	reg SnA;
+	wire [31:0] Y;
+	wire CO;
+	RC_ADD_SUB_32 rc1(Y, CO,
+		A, B, SnA);
+	initial begin
+		#5 A = 0; B = 0; SnA = 0; 
+		#5 $write("\nOp1:%d Op2:%d sNa:%d = %d carryOut:%d\n", A, B, SnA, Y, CO);
+		#5 A = 0; B = 0; SnA = 1; 
+		#5 $write("\nOp1:%d Op2:%d sNa:%d = %d carryOut:%d\n", A, B, SnA, Y, CO);
+		#5 A = 5; B = 2; SnA = 0; 
+		#5 $write("\nOp1:%d Op2:%d sNa:%d = %d carryOut:%d\n", A, B, SnA, Y, CO);
+		#5 A = 5; B = 2; SnA = 1; 
+		#5 $write("\nOp1:%d Op2:%d sNa:%d = %d carryOut:%d\n", A, B, SnA, Y, CO);
+		#5 A = 2; B = 5; SnA = 0; 
+		#5 $write("\nOp1:%d Op2:%d sNa:%d = %d carryOut:%d\n", A, B, SnA, Y, CO);
+		#5 A = 2; B = 5; SnA = 1; 
+		#5 $write("\nOp1:%d Op2:%d sNa:%d = %d carryOut:%d\n", A, B, SnA, Y, CO);
+		#5 A = 100; B = 1000; SnA = 0; 
+		#5 $write("\nOp1:%d Op2:%d sNa:%d = %d carryOut:%d\n", A, B, SnA, Y, CO);
+		#5 A = 100; B = 1000; SnA = 1; 
+		#5 $write("\nOp1:%d Op2:%d sNa:%d = %d carryOut:%d\n", A, B, SnA, Y, CO);
+		#5 A = 10000; B = 10000; SnA = 1; 
+		#5 $write("\nOp1:%d Op2:%d sNa:%d = %d carryOut:%d\n", A, B, SnA, Y, CO);
+		#5 A = 100000; B = 5; SnA = 1; 
+		#5 $write("\nOp1:%d Op2:%d sNa:%d = %d carryOut:%d\n", A, B, SnA, Y, CO);
+	end
+endmodule 

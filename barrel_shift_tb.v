@@ -1,0 +1,70 @@
+
+`timescale 1ns/1ps
+module a_barrel_shift_tb;
+	reg [31:0] operand;
+	reg [31:0] shift;
+	reg leftNotRight;
+	wire [31:0] result;
+	 SHIFT32 ls(result, operand, shift,
+		leftNotRight);
+	initial begin
+
+		#5;
+		#5 operand='b1; shift='b1; leftNotRight='b0;
+		#5 $write("%d >> %d = %d\n", operand, shift, result);
+		#5 operand='b10000000000000000000000000000000; shift='b1; leftNotRight='b0;
+		#5 $write("%d >> %d = %d\n", operand, shift, result);
+		#5 operand='b10; shift='b10; leftNotRight='b0;
+		#5 $write("%d >> %d = %d\n", operand, shift, result);
+		#5 operand='b100; shift='b10; leftNotRight='b0;
+		#5 $write("%d >> %d = %d\n", operand, shift, result);
+		#5 operand='b100; shift='b11; leftNotRight='b0;
+		#5 $write("%d >> %d = %d\n", operand, shift, result);
+		#5 operand='b11000; shift='b11; leftNotRight='b0;
+		#5 $write("%d >> %d = %d\n", operand, shift, result);
+		#5 operand='b10000000000000000000000000000000; shift='b1; leftNotRight='b0;
+		#5 $write("%d >> %d = %d\n", operand, shift, result);
+		#5 operand='b11111111111111111111111111111111; shift='b1; leftNotRight='b0;
+		#5 $write("%d >> %d = %d\n", operand, shift, result);		
+		#5 operand='b10; shift='b10; leftNotRight='b1;
+		#5 $write("%d << %d = %d\n", operand, shift, result);
+		#5 operand='b100; shift='b10; leftNotRight='b1;
+		#5 $write("%d << %d = %d\n", operand, shift, result);
+		#5 operand='b100; shift='b11; leftNotRight='b1;
+		#5 $write("%d << %d = %d\n", operand, shift, result);
+		#5 operand='b11000; shift='b11; leftNotRight='b1;
+		#5 $write("%d << %d = %d\n", operand, shift, result);
+		#5 operand='b10000000000000000000000000000000; shift='b1; leftNotRight='b1;
+		#5 $write("%d << %d = %d\n", operand, shift, result);
+		#5 operand='b1; shift='b101; leftNotRight='b1;
+		#5 $write("%d << %d = %d\n", operand, shift, result);
+		#5 operand='b10000000000000000000000000000000; shift='b1; leftNotRight='b1;
+		#5 $write("%d << %d = %d\n", operand, shift, result);
+		#5 operand='b10; shift='b10000; leftNotRight='b1;
+		#5 $write("%d << %d = %d\n", operand, shift, result);
+		#5 operand='b100; shift='b10; leftNotRight='b1;
+		#5 $write("%d << %d = %d\n", operand, shift, result);	
+	end
+
+	task golden;
+		input [31:0] calculated;
+		input [31:0] expected;
+		input [31:0] operand;
+		input [31:0] shift;
+		input leftNotRight; begin
+			if (calculated==expected) begin
+				$write("[PASSED]");
+			end else begin
+				if(leftNotRight) begin
+					$write("%d << %d = %d got %d", operand, shift, expected, calculated);
+					$write("[FAILED]");
+				end else begin
+					$write("%d >> %d = %d got %d", operand, shift, expected, calculated);
+					$write("[FAILED]");
+				end
+			end 
+			$write("\n");
+			$write("Run barrel shift TB\n");
+		end
+	endtask
+endmodule 
